@@ -11,10 +11,12 @@ using System.IO;
 using SautinSoft.Document;
 using System.Globalization;
 using System.Windows.Forms;
-
+using System.Diagnostics;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 using HorizontalAlignment = SautinSoft.Document.HorizontalAlignment;
-using System.Diagnostics;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace NeptunOrganiser
 {
@@ -35,8 +37,8 @@ namespace NeptunOrganiser
 		public static string nevgeneralas()
 		{
 			string ev = DateTime.Now.Year.ToString() + ".";
-			string honap = DateTime.Now.Month.ToString()[0].ToString() != "0" ? "0" + DateTime.Now.Month.ToString()+"." : DateTime.Now.Month.ToString() + ".";
-			string nap =  DateTime.Now.Day.ToString()[0].ToString() != "0" ? "0" + DateTime.Now.Day.ToString() +".": DateTime.Now.Day.ToString() + ".";
+			string honap = DateTime.Now.Month.ToString().Length == 1 ? "0" + DateTime.Now.Month.ToString()+"." : DateTime.Now.Month.ToString() + ".";
+			string nap = DateTime.Now.Day.ToString().Length == 1 ? "0" + DateTime.Now.Day.ToString() +".": DateTime.Now.Day.ToString() + ".";
 
 			return ev + honap + nap;
 		}
@@ -45,7 +47,7 @@ namespace NeptunOrganiser
 			// Set a path to our document.
 			DocumentCore dc = new DocumentCore();
 			string nev = "ProgramozasAlapok20 - " + nevgeneralas();
-			string filePath = @"A:\" + nev + ".docx";
+			string filePath = Properties.Settings.Default.FilePath +@"\"+ nev + ".docx";
 
 			ParagraphStyle paragraphStyle1 = new ParagraphStyle("ParagraphStyle1");
 			paragraphStyle1.CharacterFormat.FontName = "Avenir Next LT Pro Demi";
@@ -65,7 +67,7 @@ namespace NeptunOrganiser
 
 			dc.Sections.Add(
 				new Section(dc,
-					new Paragraph(dc, (DateTime.Now.Year).ToString() + "." + (DateTime.Now.Month).ToString() + "." + (DateTime.Now.Day).ToString())
+					new Paragraph(dc, nevgeneralas())
 					{
 						ParagraphFormat = new ParagraphFormat
 						{
@@ -102,9 +104,10 @@ namespace NeptunOrganiser
 		public static void SLNProjektManager()
 		{
 
-			string targetPath = @"A:\";
+			string targetPath = Properties.Settings.Default.FilePath + @"\";
 			bool useCurrentTime = true;
 			byte mode = 0;
+			//Itt le kéne kérni egy beépített változót, amit még az elején ad meg az ember, hogy melyik directoryba mentsen.
 			using (StreamReader f = new StreamReader("settings.txt"))
 			{
 				string[] temp = f.ReadLine().Split('"');
@@ -174,10 +177,14 @@ namespace NeptunOrganiser
 			}
 		}
 
-
 		public Form1()
 		{
 			InitializeComponent();
+			Properties.Settings.Default.Save();
+
+
+			textBox1.Text = Properties.Settings.Default.FilePath.ToString().Length != 0 ? Properties.Settings.Default.FilePath : "Még nincs megadva cél mappa!" ;
+
 			topPanel.BackColor = ColorTranslator.FromHtml("#2995fe");
 			panel2.Cursor = System.Windows.Forms.Cursors.Hand;
 			panel3.Cursor = System.Windows.Forms.Cursors.Hand;
@@ -211,6 +218,7 @@ namespace NeptunOrganiser
 
 		private void CppProjekt(object sender, EventArgs e)
 		{
+			//Itt CPP-s filet kéne csinálnia
 			SLNProjektManager();
 		}
 
@@ -250,6 +258,42 @@ namespace NeptunOrganiser
 			}
 
 
+		}
+
+
+		private void beallitasok(object sender, EventArgs e)
+		{
+			panel4.Visible = false;
+
+			panel5.Visible = true;
+
+		}
+
+		private void orarend(object sender, EventArgs e)
+		{
+			panel5.Visible = false;
+
+			panel4.Visible = true;
+
+		}
+
+		private void button2_Click(object sender, EventArgs e)
+		{
+			CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
+			openFileDialog.InitialDirectory = @"C:\Documents";
+
+			openFileDialog.IsFolderPicker = true;
+			if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
+			{
+				textBox1.Text = openFileDialog.FileName;
+			}
+		}
+
+		private void button3_Click(object sender, EventArgs e)
+		{
+			Properties.Settings.Default.FilePath = textBox1.Text;
+			Properties.Settings.Default.Save();
+			MessageBox.Show("Sikeres mentés!");
 		}
 	}
 }
